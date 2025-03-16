@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tic-Tac-Toe</title>
+    <style>
+/* Dark background with neon glow */
+body {
+    background-color: #000000;
+    color: #ffffff;
+    text-align: center;
+    font-family: 'Arial', sans-serif;
+}
+
+/* Game board setup */
+#board {
+    display: grid;
+    grid-template-columns: repeat(3, 100px);
+    grid-template-rows: repeat(3, 100px);
+    gap: 8px;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+/* Neon cell styling */
+.cell {
+    width: 100px;
+    height: 100px;
+    background-color: #121212;
+    color: #ffffff;
+    font-size: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    border: 2px solid #00ffcc;
+    box-shadow: 0px 0px 10px #00ffcc;
+    transition: all 0.3s ease-in-out;
+}
+
+/* Hover effect */
+.cell:hover {
+    background-color: #1f1f1f;
+    box-shadow: 0px 0px 20px #00ffcc;
+}
+
+/* X and O colors */
+.cell[data-value="X"] {
+    color: #00ffcc; /* Neon Cyan */
+    text-shadow: 0px 0px 10px #00ffcc;
+}
+
+.cell[data-value="O"] {
+    color: #ff00ff; /* Neon Pink */
+    text-shadow: 0px 0px 10px #ff00ff;
+}
+
+/* Winner message */
+#message {
+    font-size: 24px;
+    margin-top: 20px;
+    color: #ffff00; /* Neon Yellow */
+    text-shadow: 0px 0px 10px #ffff00;
+}
+
+/* Reset button */
+button {
+    background-color: #ff6600;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    font-size: 18px;
+    margin-top: 20px;
+    cursor: pointer;
+    border-radius: 5px;
+    transition: 0.3s;
+    box-shadow: 0px 0px 10px #ff6600;
+}
+
+/* Hover effect for button */
+button:hover {
+    background-color: #ff4500;
+    box-shadow: 0px 0px 20px #ff4500;
+}
+
+
+    </style>
+</head>
+<body>
+    <h1>Tic-Tac-Toe</h1>
+    <div class="board" id="board"></div>
+    <div class="message" id="message"></div>
+    <button class="reset" onclick="resetGame()">Restart</button>
+
+    <script>
+        const board = document.getElementById("board");
+        const message = document.getElementById("message");
+        let currentPlayer = "X";
+        let gameBoard = ["", "", "", "", "", "", "", "", ""];
+        
+        function createBoard() {
+            board.innerHTML = "";
+            gameBoard.forEach((cell, index) => {
+                const cellDiv = document.createElement("div");
+                cellDiv.classList.add("cell");
+                cellDiv.dataset.index = index;
+                cellDiv.innerText = cell;
+                cellDiv.addEventListener("click", handleMove);
+                board.appendChild(cellDiv);
+            });
+        }
+        
+        function handleMove(event) {
+            const index = event.target.dataset.index;
+            if (gameBoard[index] === "") {
+                gameBoard[index] = currentPlayer;
+                event.target.innerText = currentPlayer;
+                event.target.classList.add("taken");
+                if (checkWin()) {
+                    message.innerText = `${currentPlayer} Wins!`;
+                    board.childNodes.forEach(cell => cell.removeEventListener("click", handleMove));
+                    return;
+                }
+                if (gameBoard.every(cell => cell !== "")) {
+                    message.innerText = "It's a Draw!";
+                    return;
+                }
+                currentPlayer = currentPlayer === "X" ? "O" : "X";
+            }
+        }
+        
+        function checkWin() {
+            const winPatterns = [
+                [0, 1, 2], [3, 4, 5], [6, 7, 8],
+                [0, 3, 6], [1, 4, 7], [2, 5, 8],
+                [0, 4, 8], [2, 4, 6]
+            ];
+            return winPatterns.some(pattern => {
+                const [a, b, c] = pattern;
+                return gameBoard[a] && gameBoard[a] === gameBoard[b] && gameBoard[a] === gameBoard[c];
+            });
+        }
+        
+        function resetGame() {
+            gameBoard = ["", "", "", "", "", "", "", "", ""];
+            currentPlayer = "X";
+            message.innerText = "";
+            createBoard();
+        }
+        
+        createBoard();
+    </script>
+</body>
+</html>

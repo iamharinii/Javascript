@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2048 Game</title>
+    <style>
+        body {
+    text-align: center;
+    font-family: Arial, sans-serif;
+    background-color: #faf8ef;
+}
+
+h1 {
+    font-size: 36px;
+    color: #776e65;
+}
+
+#game-board {
+    display: grid;
+    grid-template-columns: repeat(4, 100px);
+    grid-template-rows: repeat(4, 100px);
+    gap: 10px;
+    background-color: #bbada0;
+    padding: 10px;
+    margin: 20px auto;
+    width: 440px;
+    border-radius: 10px;
+}
+
+.tile {
+    width: 100px;
+    height: 100px;
+    background-color: #cdc1b4;
+    color: #776e65;
+    font-size: 24px;
+    font-weight: bold;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 5px;
+}
+
+.tile-2 { background-color: #eee4da; }
+.tile-4 { background-color: #ede0c8; }
+.tile-8 { background-color: #f2b179; color: white; }
+.tile-16 { background-color: #f59563; color: white; }
+.tile-32 { background-color: #f67c5f; color: white; }
+.tile-64 { background-color: #f65e3b; color: white; }
+.tile-128 { background-color: #edcf72; color: white; }
+.tile-256 { background-color: #edcc61; color: white; }
+.tile-512 { background-color: #edc850; color: white; }
+.tile-1024 { background-color: #edc53f; color: white; }
+.tile-2048 { background-color: #edc22e; color: white; }
+
+    </style>
+</head>
+<body>
+
+    <h1>2048 Game</h1>
+    <p>Use arrow keys (← ↑ → ↓) to move the tiles!</p>
+    
+    <div id="game-board"></div>
+
+    <p>Score: <span id="score">0</span></p>
+
+    <script>
+        const board = document.getElementById("game-board");
+const scoreDisplay = document.getElementById("score");
+
+let grid = [
+    [0, 0, 0, 0],
+    [0, 0, 0, 0],
+    [0, 0, 0, 0],
+    [0, 0, 0, 0]
+];
+
+let score = 0;
+
+// Function to create the board
+function createBoard() {
+    board.innerHTML = "";
+    grid.forEach(row => {
+        row.forEach(num => {
+            let tile = document.createElement("div");
+            tile.classList.add("tile");
+            if (num > 0) {
+                tile.innerText = num;
+                tile.classList.add(`tile-${num}`);
+            }
+            board.appendChild(tile);
+        });
+    });
+}
+
+// Function to add a random tile (2 or 4)
+function addRandomTile() {
+    let emptyCells = [];
+    for (let r = 0; r < 4; r++) {
+        for (let c = 0; c < 4; c++) {
+            if (grid[r][c] === 0) {
+                emptyCells.push({ r, c });
+            }
+        }
+    }
+    if (emptyCells.length > 0) {
+        let { r, c } = emptyCells[Math.floor(Math.random() * emptyCells.length)];
+        grid[r][c] = Math.random() > 0.5 ? 2 : 4;
+    }
+}
+
+// Function to move tiles
+function slide(row) {
+    let newRow = row.filter(num => num);
+    while (newRow.length < 4) newRow.push(0);
+    return newRow;
+}
+
+// Function to combine tiles
+function combine(row) {
+    for (let i = 0; i < 3; i++) {
+        if (row[i] !== 0 && row[i] === row[i + 1]) {
+            row[i] *= 2;
+            row[i + 1] = 0;
+            score += row[i];
+        }
+    }
+    return row;
+}
+
+// Function to handle left movement
+function moveLeft() {
+    let newGrid = grid.map(row => slide(combine(slide(row))));
+    if (JSON.stringify(grid) !== JSON.stringify(newGrid)) {
+        grid = newGrid;
+        addRandomTile();
+        updateGame();
+    }
+}
+
+// Function to handle right movement
+function moveRight() {
+    let newGrid = grid.map(row => {
+        row.reverse();
+        row = slide(combine(slide(row)));
+        row.reverse();
+        return row;
+    });
+    if (JSON.stringify(grid) !== JSON.stringify(newGrid)) {
+        grid = newGrid;
+        addRandomTile();
+        updateGame();
+    }
+}
+
+// Function to handle up movement
+function moveUp() {
+    let newGrid = [[], [], [], []];
+    for (let c = 0; c < 4; c++) {
+        let col = [grid[0][c], grid[1][c], grid[2][c], grid[3][c]];
+        col = slide(combine(slide(col)));
+        for (let r = 0; r < 4; r++) newGrid[r][c] = col[r];
+    }
+    if (JSON.stringify(grid) !== JSON.stringify(newGrid)) {
+        grid = newGrid;
+        addRandomTile();
+        updateGame();
+    }
+}
+
+// Function to handle down movement
+function moveDown() {
+    let newGrid = [[], [], [], []];
+    for (let c = 0; c < 4; c++) {
+        let col = [grid[0][c], grid[1][c], grid[2][c], grid[3][c]];
+        col.reverse();
+        col = slide(combine(slide(col)));
+        col.reverse();
+        for (let r = 0; r < 4; r++) newGrid[r][c] = col[r];
+    }
+    if (JSON.stringify(grid) !== JSON.stringify(newGrid)) {
+        grid = newGrid;
+        addRandomTile();
+        updateGame();
+    }
+}
+
+// Function to update the game state
+function updateGame() {
+    createBoard();
+    scoreDisplay.innerText = score;
+}
+
+// Function to check for game over
+function isGameOver() {
+    for (let r = 0; r < 4; r++) {
+        for (let c = 0; c < 4; c++) {
+            if (grid[r][c] === 0) return false;
+            if (c < 3 && grid[r][c] === grid[r][c + 1]) return false;
+            if (r < 3 && grid[r][c] === grid[r + 1][c]) return false;
+        }
+    }
+    alert("Game Over! Final Score: " + score);
+    return true;
+}
+
+// Keyboard controls
+document.addEventListener("keydown", event => {
+    if (event.key === "ArrowLeft") moveLeft();
+    if (event.key === "ArrowRight") moveRight();
+    if (event.key === "ArrowUp") moveUp();
+    if (event.key === "ArrowDown") moveDown();
+    if (isGameOver()) location.reload();
+});
+
+// Initialize the game
+addRandomTile();
+addRandomTile();
+updateGame();
+
+    </script>
+</body>
+</html>
